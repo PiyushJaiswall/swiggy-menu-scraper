@@ -1,212 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Swiggy Menu Extractor - Easy Method</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        .container {
-            max-width: 1000px;
-            margin: 40px auto;
-            background: white;
-            border-radius: 20px;
-            padding: 50px;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.3);
-        }
-        h1 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 15px;
-            font-size: 2.5em;
-        }
-        .subtitle {
-            text-align: center;
-            color: #666;
-            margin-bottom: 40px;
-            font-size: 1.2em;
-        }
-        .step {
-            background: #f8f9fa;
-            padding: 30px;
-            border-radius: 12px;
-            margin-bottom: 25px;
-            border-left: 5px solid #667eea;
-        }
-        .step-number {
-            background: #667eea;
-            color: white;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            margin-right: 15px;
-            font-size: 1.3em;
-        }
-        .step-title {
-            font-size: 1.4em;
-            color: #333;
-            margin-bottom: 20px;
-            font-weight: 600;
-        }
-        .step-content {
-            color: #555;
-            line-height: 1.8;
-            margin-left: 55px;
-            font-size: 1.05em;
-        }
-        .code-box {
-            background: #2d2d2d;
-            color: #f8f8f2;
-            padding: 20px;
-            border-radius: 10px;
-            margin: 20px 0;
-            overflow-x: auto;
-            position: relative;
-            font-family: 'Courier New', monospace;
-            font-size: 0.95em;
-        }
-        .copy-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 0.9em;
-            font-weight: bold;
-        }
-        .copy-btn:hover {
-            background: #5568d3;
-        }
-        .highlight {
-            background: #fff3cd;
-            padding: 20px;
-            border-radius: 10px;
-            border-left: 5px solid #ffc107;
-            margin: 20px 0;
-        }
-        .success {
-            background: #d4edda;
-            padding: 20px;
-            border-radius: 10px;
-            border-left: 5px solid #28a745;
-            margin: 20px 0;
-            color: #155724;
-        }
-        .gif-demo {
-            text-align: center;
-            margin: 30px 0;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 10px;
-        }
-        .gif-demo img {
-            max-width: 100%;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-    </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Swiggy Menu Downloader</title>
+    <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+
     <div class="container">
-        <h1>🍽️ Swiggy Menu Extractor</h1>
-        <p class="subtitle">Extract any restaurant menu in 3 simple steps!</p>
+        <h1>Swiggy Menu Downloader</h1>
+        <p>Paste any Swiggy restaurant link below:</p>
 
-        <div class="success">
-            <strong>✅ This method works 100% - No errors possible!</strong><br>
-            Works because you're extracting data directly from the Swiggy page you're already viewing.
-        </div>
+        <input type="text" id="urlInput" placeholder="Paste Swiggy restaurant URL here" />
 
-        <div class="step">
-            <div class="step-title">
-                <span class="step-number">1</span>
-                Open Any Swiggy Restaurant Page
-            </div>
-            <div class="step-content">
-                <p><strong>Go to Swiggy website and open any restaurant.</strong></p>
-                <p style="margin-top:10px;">Example: <a href="https://www.swiggy.com/city/bangalore/meghana-foods-residency-road-shanthala-nagar-rest34908" target="_blank" style="color:#667eea;">Click here to open example restaurant</a></p>
-            </div>
-        </div>
+        <button id="openBtn">Open Restaurant Page</button>
+        <button id="extractBtn">Extract Menu</button>
+        <button id="downloadBtn">Download CSV</button>
 
-        <div class="step">
-            <div class="step-title">
-                <span class="step-number">2</span>
-                Open Browser Console
-            </div>
-            <div class="step-content">
-                <p><strong>Press these keys to open the console:</strong></p>
-                <ul style="margin: 15px 0; margin-left: 20px;">
-                    <li style="margin: 8px 0;"><strong>Windows/Linux:</strong> Press <code style="background:#e0e0e0;padding:3px 8px;border-radius:3px;">F12</code> or <code style="background:#e0e0e0;padding:3px 8px;border-radius:3px;">Ctrl + Shift + J</code></li>
-                    <li style="margin: 8px 0;"><strong>Mac:</strong> Press <code style="background:#e0e0e0;padding:3px 8px;border-radius:3px;">Cmd + Option + J</code></li>
-                </ul>
-                <p style="margin-top:15px;">Then click on the <strong>"Console"</strong> tab at the top.</p>
-            </div>
-        </div>
-
-        <div class="step">
-            <div class="step-title">
-                <span class="step-number">3</span>
-                Copy & Paste This Script
-            </div>
-            <div class="step-content">
-                <p><strong>Copy the script below and paste it into the console, then press Enter:</strong></p>
-                
-                <div class="code-box">
-                    <button class="copy-btn" onclick="copyScript()">📋 Copy Script</button>
-                    <pre id="script-code">(function(){if(!window.location.hostname.includes('swiggy.com')){alert('⚠️ Please open this on a Swiggy restaurant page first!');return}const e=document.createElement("script");e.src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js",e.onload=function(){try{const e=window.__PRELOADED_STATE__;if(!e||!e.restaurants||!e.restaurants.data)return void alert("❌ No menu data found. Make sure you're on a restaurant page.");const t=e.restaurants.data,n=t.cards.find((e=>e?.card?.card?.info))?.card?.card?.info;if(!n)return void alert("❌ Restaurant info not found");const a=t.cards.find((e=>e?.groupedCard?.cardGroupMap?.REGULAR))?.groupedCard?.cardGroupMap?.REGULAR?.cards||[],o=[];a.forEach((e=>{try{if(e?.card?.card?.itemCards){const t=e.card.card.title||"Others";e.card.card.itemCards.forEach((e=>{const n=e?.card?.info;n&&n.name&&o.push({category:t,name:n.name,price:n.price?(n.price/100).toFixed(2):n.defaultPrice?(n.defaultPrice/100).toFixed(2):"N/A",description:n.description||"",isVeg:1===n.isVeg})}))}if(e?.card?.card?.categories){const t=e.card.card.title||"Others";e.card.card.categories.forEach((e=>{const n=e.title||t;e.itemCards?.forEach((e=>{const t=e?.card?.info;t&&t.name&&o.push({category:n,name:t.name,price:t.price?(t.price/100).toFixed(2):t.defaultPrice?(t.defaultPrice/100).toFixed(2):"N/A",description:t.description||"",isVeg:1===t.isVeg})}))}))}}catch(e){}}));const r=o.map((e=>({Category:e.category,"Item Name":e.name,Type:e.isVeg?"Vegetarian":"Non-Vegetarian","Price (₹)":e.price,Description:e.description||"N/A"}))),c=XLSX.utils.book_new(),s=XLSX.utils.json_to_sheet(r);s["!cols"]=[{wch:20},{wch:40},{wch:15},{wch:12},{wch:50}],XLSX.utils.book_append_sheet(c,s,"Menu");const i=n.name.replace(/[^a-z0-9]/gi,"_").toLowerCase();XLSX.writeFile(c,`${i}_menu.xlsx`),alert(`✅ Success! Downloaded menu with ${o.length} items!`)}catch(e){alert("❌ Error: "+e.message)}},document.head.appendChild(e)})();</pre>
-                </div>
-
-                <div class="highlight">
-                    <strong>💡 What happens:</strong><br>
-                    The script extracts all menu items from the page and automatically downloads them as an Excel file!
-                </div>
-            </div>
-        </div>
-
-        <div class="success">
-            <h3 style="margin-bottom:15px;">✨ Features:</h3>
-            <ul style="margin-left:25px;line-height:2;">
-                <li>✅ Extracts complete menu with prices</li>
-                <li>✅ Includes categories and descriptions</li>
-                <li>✅ Shows Veg/Non-Veg indicators</li>
-                <li>✅ Downloads as organized Excel file</li>
-                <li>✅ Works on ANY Swiggy restaurant</li>
-                <li>✅ 100% free, no installation needed</li>
-            </ul>
-        </div>
-
-        <div class="highlight" style="text-align:center; font-size:1.1em; margin-top:40px;">
-            <strong>⚡ That's it! Super simple and works every time!</strong><br>
-            <span style="font-size:0.95em; color:#666;">Bookmark this page for future use.</span>
-        </div>
+        <h2>Menu Items</h2>
+        <div id="menuContainer"></div>
     </div>
 
-    <script>
-        function copyScript() {
-            const script = document.getElementById('script-code').textContent;
-            navigator.clipboard.writeText(script).then(() => {
-                const btn = document.querySelector('.copy-btn');
-                btn.textContent = '✅ Copied!';
-                btn.style.background = '#28a745';
-                setTimeout(() => {
-                    btn.textContent = '📋 Copy Script';
-                    btn.style.background = '#667eea';
-                }, 2000);
-            });
-        }
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
