@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swiggy Menu Scraper</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 1200px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loader {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .loader.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #fee;
+            border: 2px solid #fcc;
+            color: #c33;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .error.active {
+            display: block;
+        }
+
+        .menu-display {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .menu-display.active {
+            display: block;
+        }
+
+        .restaurant-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .restaurant-info h2 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .restaurant-info p {
+            color: #666;
+            margin: 5px 0;
+        }
+
+        .menu-items {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .menu-category {
+            margin-bottom: 25px;
+        }
+
+        .category-title {
+            background: #667eea;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .menu-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+        }
+
+        .item-details h4 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .item-description {
+            color: #666;
+            font-size: 0.9em;
+            margin: 5px 0;
+        }
+
+        .item-price {
+            color: #667eea;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .veg-indicator {
+            display: inline-block;
+            width: 15px;
+            height: 15px;
+            border-radius: 3px;
+            margin-right: 8px;
+        }
+
+        .veg {
+            border: 2px solid #0f8a3d;
+        }
+
+        .non-veg {
+            border: 2px solid #e43b4f;
+        }
+
+        .download-section {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .example-link {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 0.9em;
+        }
+
+        .example-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🍽️ Swiggy Menu Scraper</h1>
+        <p class="subtitle">Extract and download restaurant menus from Swiggy</p>
+
+        <div class="input-section">
+            <div class="input-group">
+                <input 
+                    type="text" 
+                    id="swiggyUrl" 
+                    placeholder="Paste Swiggy restaurant URL here..."
+                    value="">
+            </div>
+            <button id="scrapeBtn" onclick="scrapeMenu()">Extract Menu</button>
+            <p style="margin-top: 10px; color: #666; font-size: 0.9em;">
+                Example: <span class="example-link">https://www.swiggy.com/city/bangalore/restaurant-name-rest12345</span>
+            </p>
+        </div>
+
+        <div class="loader" id="loader">
+            <div class="spinner"></div>
+            <p style="margin-top: 15px; color: #666;">Fetching menu data...</p>
+        </div>
+
+        <div class="error" id="error"></div>
+
+        <div class="menu-display" id="menuDisplay">
+            <div class="restaurant-info" id="restaurantInfo"></div>
+            <div class="download-section">
+                <button onclick="downloadExcel()">📥 Download Menu as Excel</button>
+            </div>
+            <div class="menu-items" id="menuItems"></div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        let menuData = [];
+
+        async function scrapeMenu() {
+            const url = document.getElementById('swiggyUrl').value.trim();
+            
+            if (!url) {
+                showError('Please enter a Swiggy restaurant URL');
+                return;
+            }
+
+            // Extract restaurant ID from URL
+            const restaurantIdMatch = url.match(/rest(\d+)/);
+            if (!restaurantIdMatch) {
+                showError('Invalid Swiggy URL. Please check the format.');
+                return;
+            }
+
+            const restaurantId = restaurantIdMatch[1];
+            
+            showLoader(true);
+            hideError();
+            hideMenu();
+
+            try {
+                const response = await fetch(`/api/scrape-menu?restaurantId=${restaurantId}`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to fetch menu');
+                }
+
+                menuData = data.menu;
+                displayMenu(data);
+                showMenu();
+            } catch (error) {
+                showError(error.message || 'An error occurred while fetching the menu');
+            } finally {
+                showLoader(false);
+            }
+        }
+
+        function displayMenu(data) {
+            // Display restaurant info
+            const restaurantInfo = document.getElementById('restaurantInfo');
+            restaurantInfo.innerHTML = `
+                <h2>${data.restaurantName}</h2>
+                <p><strong>Cuisine:</strong> ${data.cuisine || 'N/A'}</p>
+                <p><strong>Area:</strong> ${data.area || 'N/A'}</p>
+                <p><strong>Total Items:</strong> ${data.menu.length}</p>
+            `;
+
+            // Display menu items
+            const menuItems = document.getElementById('menuItems');
+            const categories = {};
+
+            // Group items by category
+            data.menu.forEach(item => {
+                if (!categories[item.category]) {
+                    categories[item.category] = [];
+                }
+                categories[item.category].push(item);
+            });
+
+            // Render categories and items
+            let html = '';
+            for (const [category, items] of Object.entries(categories)) {
+                html += `
+                    <div class="menu-category">
+                        <div class="category-title">${category}</div>
+                `;
+
+                items.forEach(item => {
+                    const vegClass = item.isVeg ? 'veg' : 'non-veg';
+                    html += `
+                        <div class="menu-item">
+                            <div class="item-details">
+                                <h4>
+                                    <span class="veg-indicator ${vegClass}"></span>
+                                    ${item.name}
+                                </h4>
+                                ${item.description ? `<p class="item-description">${item.description}</p>` : ''}
+                            </div>
+                            <div class="item-price">₹${item.price}</div>
+                        </div>
+                    `;
+                });
+
+                html += `</div>`;
+            }
+
+            menuItems.innerHTML = html;
+        }
+
+        function downloadExcel() {
+            if (menuData.length === 0) {
+                showError('No menu data to download');
+                return;
+            }
+
+            // Prepare data for Excel
+            const excelData = menuData.map(item => ({
+                'Category': item.category,
+                'Item Name': item.name,
+                'Type': item.isVeg ? 'Vegetarian' : 'Non-Vegetarian',
+                'Price (₹)': item.price,
+                'Description': item.description || 'N/A'
+            }));
+
+            // Create workbook and worksheet
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(excelData);
+
+            // Add worksheet to workbook
+            XLSX.utils.book_append_sheet(wb, ws, 'Menu');
+
+            // Generate filename with timestamp
+            const filename = `swiggy_menu_${Date.now()}.xlsx`;
+
+            // Download
+            XLSX.writeFile(wb, filename);
+        }
+
+        function showLoader(show) {
+            const loader = document.getElementById('loader');
+            const btn = document.getElementById('scrapeBtn');
+            if (show) {
+                loader.classList.add('active');
+                btn.disabled = true;
+            } else {
+                loader.classList.remove('active');
+                btn.disabled = false;
+            }
+        }
+
+        function showError(message) {
+            const error = document.getElementById('error');
+            error.textContent = message;
+            error.classList.add('active');
+        }
+
+        function hideError() {
+            const error = document.getElementById('error');
+            error.classList.remove('active');
+        }
+
+        function showMenu() {
+            document.getElementById('menuDisplay').classList.add('active');
+        }
+
+        function hideMenu() {
+            document.getElementById('menuDisplay').classList.remove('active');
+        }
+
+        // Allow Enter key to trigger scraping
+        document.getElementById('swiggyUrl').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                scrapeMenu();
+            }
+        });
+    </script>
+</body>
+</html>
