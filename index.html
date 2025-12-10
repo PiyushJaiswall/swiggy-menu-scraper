@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swiggy Menu Scraper</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 40px;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        button {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        button:hover { transform: translateY(-2px); }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        .loader {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .loader.active { display: block; }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .error {
+            background: #fee;
+            border: 2px solid #fcc;
+            color: #c33;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: none;
+        }
+        .error.active { display: block; }
+        .menu-display {
+            margin-top: 30px;
+            display: none;
+        }
+        .menu-display.active { display: block; }
+        .restaurant-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .restaurant-info h2 { color: #333; margin-bottom: 10px; }
+        .restaurant-info p { color: #666; margin: 5px 0; }
+        .menu-items { max-height: 500px; overflow-y: auto; }
+        .menu-category { margin-bottom: 25px; }
+        .category-title {
+            background: #667eea;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .menu-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .item-details h4 { color: #333; margin-bottom: 5px; }
+        .item-description { color: #666; font-size: 0.9em; margin: 5px 0; }
+        .item-price {
+            color: #667eea;
+            font-weight: bold;
+            font-size: 1.1em;
+            white-space: nowrap;
+            margin-left: 15px;
+        }
+        .download-section { text-align: center; margin: 20px 0; }
+        .example { color: #667eea; cursor: pointer; font-size: 0.9em; }
+        .example:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🍽️ Swiggy Menu Scraper</h1>
+        <p class="subtitle">Extract and download restaurant menus instantly</p>
+
+        <div class="input-group">
+            <input type="text" id="swiggyUrl" placeholder="Paste Swiggy restaurant URL here...">
+            <button onclick="scrapeMenu()">Extract Menu</button>
+        </div>
+        <p style="text-align:center; margin-top:10px; color:#666; font-size:0.9em;">
+            Try example: <span class="example" onclick="fillExample()">Click here</span>
+        </p>
+
+        <div class="loader" id="loader">
+            <div class="spinner"></div>
+            <p style="margin-top:15px; color:#666;">Fetching menu...</p>
+        </div>
+
+        <div class="error" id="error"></div>
+
+        <div class="menu-display" id="menuDisplay">
+            <div class="restaurant-info" id="restaurantInfo"></div>
+            <div class="download-section">
+                <button onclick="downloadExcel()">📥 Download as Excel</button>
+            </div>
+            <div class="menu-items" id="menuItems"></div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        let menuData = [];
+        let restaurantData = {};
+
+        function fillExample() {
+            document.getElementById('swiggyUrl').value = 'https://www.swiggy.com/city/bangalore/meghana-foods-residency-road-shanthala-nagar-rest34908';
+        }
+
+        function extractLocation(url) {
+            const cityMatch = url.match(/\/city\/([^\/]+)\//);
+            const city = cityMatch ? cityMatch[1] : 'bangalore';
+            const coords = {
+                'bangalore': { lat: '12.9715987', lng: '77.5945627' },
+                'delhi': { lat: '28.7041', lng: '77.1025' },
+                'mumbai': { lat: '19.0760', lng: '72.8777' },
+                'hyderabad': { lat: '17.3850', lng: '78.4867' },
+                'pune': { lat: '18.5204', lng: '73.8567' }
+            };
+            return coords[city] || coords['bangalore'];
+        }
+
+        async function scrapeMenu() {
+            const url = document.getElementById('swiggyUrl').value.trim();
+            
+            if (!url) {
+                showError('Please enter a Swiggy URL');
+                return;
+            }
+
+            const match = url.match(/rest(\d+)/);
+            if (!match) {
+                showError('Invalid URL. Must contain "rest" followed by numbers');
+                return;
+            }
+
+            const restaurantId = match[1];
+            const location = extractLocation(url);
+            
+            showLoader(true);
+            hideError();
+            hideMenu();
+
+            try {
+                const apiUrl = `/api/menu?restaurantId=${restaurantId}&lat=${location.lat}&lng=${location.lng}`;
+                const response = await fetch(apiUrl);
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to fetch menu');
+                }
+
+                const data = await response.json();
+
+                if (!data.menu || data.menu.length === 0) {
+                    throw new Error('No menu items found');
+                }
+
+                menuData = data.menu;
+                restaurantData = data;
+                displayMenu(data);
+                showMenu();
+                
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                showLoader(false);
+            }
+        }
+
+        function displayMenu(data) {
+            document.getElementById('restaurantInfo').innerHTML = `
+                <h2>${data.restaurantName}</h2>
+                <p><strong>Cuisine:</strong> ${data.cuisine}</p>
+                <p><strong>Location:</strong> ${data.area}, ${data.city}</p>
+                ${data.rating !== 'N/A' ? `<p><strong>Rating:</strong> ⭐ ${data.rating}</p>` : ''}
+                ${data.costForTwo !== 'N/A' ? `<p><strong>Cost:</strong> ${data.costForTwo}</p>` : ''}
+                <p><strong>Total Items:</strong> ${data.menu.length}</p>
+            `;
+
+            const categories = {};
+            data.menu.forEach(item => {
+                if (!categories[item.category]) categories[item.category] = [];
+                categories[item.category].push(item);
+            });
+
+            let html = '';
+            for (const [category, items] of Object.entries(categories)) {
+                html += `<div class="menu-category"><div class="category-title">${category}</div>`;
+                items.forEach(item => {
+                    html += `
+                        <div class="menu-item">
+                            <div class="item-details">
+                                <h4>${item.isVeg ? '🟢' : '🔴'} ${item.name}</h4>
+                                ${item.description ? `<p class="item-description">${item.description}</p>` : ''}
+                            </div>
+                            <div class="item-price">₹${item.price}</div>
+                        </div>
+                    `;
+                });
+                html += `</div>`;
+            }
+            document.getElementById('menuItems').innerHTML = html;
+        }
+
+        function downloadExcel() {
+            if (!menuData.length) return;
+            
+            const data = menuData.map(item => ({
+                'Category': item.category,
+                'Item': item.name,
+                'Type': item.isVeg ? 'Veg' : 'Non-Veg',
+                'Price': item.price,
+                'Description': item.description || ''
+            }));
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(data);
+            ws['!cols'] = [{ wch: 20 }, { wch: 35 }, { wch: 12 }, { wch: 10 }, { wch: 50 }];
+            XLSX.utils.book_append_sheet(wb, ws, 'Menu');
+            
+            const name = restaurantData.restaurantName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+            XLSX.writeFile(wb, `${name}_menu.xlsx`);
+        }
+
+        function showLoader(show) {
+            document.getElementById('loader').classList.toggle('active', show);
+            document.querySelector('button').disabled = show;
+        }
+        function showError(msg) {
+            const el = document.getElementById('error');
+            el.textContent = '❌ ' + msg;
+            el.classList.add('active');
+        }
+        function hideError() {
+            document.getElementById('error').classList.remove('active');
+        }
+        function showMenu() {
+            document.getElementById('menuDisplay').classList.add('active');
+        }
+        function hideMenu() {
+            document.getElementById('menuDisplay').classList.remove('active');
+        }
+
+        document.getElementById('swiggyUrl').addEventListener('keypress', e => {
+            if (e.key === 'Enter') scrapeMenu();
+        });
+    </script>
+</body>
+</html>
