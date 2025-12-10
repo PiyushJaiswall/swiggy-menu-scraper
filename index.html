@@ -7,196 +7,396 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: Arial, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
         .container {
+            max-width: 900px;
+            margin: 40px auto;
             background: white;
-            border-radius: 20px;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.3);
-            max-width: 800px;
-            width: 100%;
-            padding: 50px;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
         h1 {
-            color: #333;
             text-align: center;
-            margin-bottom: 15px;
+            color: #333;
+            margin-bottom: 30px;
             font-size: 2.5em;
         }
-        .subtitle {
-            text-align: center;
-            color: #666;
-            margin-bottom: 40px;
+        .alert {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            color: #856404;
+        }
+        .alert strong {
+            display: block;
+            margin-bottom: 10px;
             font-size: 1.1em;
         }
-        .step {
-            background: #f8f9fa;
-            padding: 25px;
-            border-radius: 12px;
-            margin-bottom: 25px;
-            border-left: 5px solid #667eea;
+        .input-group {
+            margin-bottom: 20px;
         }
-        .step-number {
-            background: #667eea;
-            color: white;
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
+        label {
+            display: block;
+            margin-bottom: 8px;
             font-weight: bold;
-            margin-right: 15px;
-            font-size: 1.2em;
-        }
-        .step-title {
-            font-size: 1.3em;
             color: #333;
-            margin-bottom: 15px;
-            font-weight: 600;
         }
-        .step-content {
-            color: #666;
-            line-height: 1.8;
-            margin-left: 50px;
+        input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
         }
-        .bookmarklet-btn {
-            display: inline-block;
-            padding: 15px 30px;
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        button {
+            width: 100%;
+            padding: 18px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            text-decoration: none;
-            border-radius: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
             font-weight: bold;
-            font-size: 1.1em;
-            transition: transform 0.2s;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            cursor: pointer;
+            margin-top: 20px;
         }
-        .bookmarklet-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
         }
-        .code-block {
-            background: #2d2d2d;
-            color: #f8f8f2;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 15px 0;
-            overflow-x: auto;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9em;
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
         }
-        .highlight {
-            background: #fff3cd;
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 4px solid #ffc107;
-            margin: 15px 0;
+        .result {
+            margin-top: 30px;
+            display: none;
         }
-        .feature {
-            display: flex;
-            align-items: center;
-            margin: 10px 0;
+        .result.show {
+            display: block;
+        }
+        .restaurant-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .restaurant-info h2 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        .restaurant-info p {
             color: #666;
+            margin: 8px 0;
+            font-size: 1.05em;
         }
-        .feature::before {
-            content: "✓";
+        .menu-list {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+        }
+        .menu-item {
+            background: #f8f9fa;
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .item-name {
+            font-weight: 600;
+            color: #333;
+        }
+        .item-price {
             color: #667eea;
             font-weight: bold;
-            font-size: 1.5em;
-            margin-right: 10px;
         }
-        .demo-video {
+        .error {
+            background: #f8d7da;
+            border: 2px solid #f5c6cb;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+        .error.show {
+            display: block;
+        }
+        .loader {
             text-align: center;
-            margin: 30px 0;
+            padding: 30px;
+            display: none;
         }
-        .demo-video img {
-            max-width: 100%;
-            border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        .loader.show {
+            display: block;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .example {
+            background: #e7f3ff;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #0066cc;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🍽️ Swiggy Menu Extractor</h1>
-        <p class="subtitle">Extract any restaurant menu with one click - No errors, 100% working!</p>
+        
+        <div class="alert">
+            <strong>📌 How to Get Restaurant ID:</strong>
+            1. Go to Swiggy.com and open any restaurant<br>
+            2. Look at the URL: https://www.swiggy.com/.../<strong>rest34908</strong><br>
+            3. Copy the numbers after "rest" (e.g., <strong>34908</strong>)<br>
+            4. Paste below and click Extract!
+        </div>
 
-        <div class="step">
-            <div class="step-title">
-                <span class="step-number">1</span>
-                Drag This Button to Bookmarks Bar
-            </div>
-            <div class="step-content">
-                <p style="margin-bottom: 20px;">Drag the button below to your browser's bookmarks bar (usually at the top of your browser):</p>
-                <div style="text-align: center; margin: 25px 0;">
-                    <a href="javascript:(function(){function e(){const e=document.createElement('script');e.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',e.onload=t,document.head.appendChild(e)}function t(){const e=window.location.href.match(/rest(\d+)/);if(!e)return alert('❌ Please open this on a Swiggy restaurant page!');const t=e[1],n=document.createElement('div');n.id='swiggy-extractor',n.innerHTML=`\n            <div style='position:fixed;top:20px;right:20px;background:white;padding:25px;border-radius:15px;box-shadow:0 10px 40px rgba(0,0,0,0.3);z-index:999999;max-width:400px;font-family:Arial,sans-serif'>\n                <h3 style='margin:0 0 15px 0;color:#333;font-size:1.3em'>🍽️ Menu Extractor</h3>\n                <div id='extractor-status' style='margin:15px 0;color:#666'>\n                    <div style='text-align:center;padding:20px'>\n                        <div style='border:3px solid #667eea;border-radius:50%;border-top-color:transparent;width:40px;height:40px;animation:spin 1s linear infinite;margin:0 auto'></div>\n                        <p style='margin-top:15px'>Extracting menu...</p>\n                    </div>\n                </div>\n                <button onclick='document.getElementById(\"swiggy-extractor\").remove()' style='width:100%;padding:12px;background:#f44336;color:white;border:none;border-radius:8px;cursor:pointer;font-size:1em;margin-top:10px'>Close</button>\n            </div>\n            <style>@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}</style>\n        `,document.body.appendChild(n),a(t)}async function a(e){try{const t=window.__PRELOADED_STATE__;if(!t||!t.restaurants||!t.restaurants.data)throw new Error('Menu data not found');const a=t.restaurants.data,o=a.cards.find((e=>e?.card?.card?.info))?.card?.card?.info;if(!o)throw new Error('Restaurant info not found');const r=a.cards.find((e=>e?.groupedCard?.cardGroupMap?.REGULAR))?.groupedCard?.cardGroupMap?.REGULAR?.cards||[],s=[];r.forEach((e=>{try{if(e?.card?.card?.itemCards){const t=e.card.card.title||'Others';e.card.card.itemCards.forEach((e=>{const a=e?.card?.info;a&&a.name&&s.push({category:t,name:a.name,price:a.price?(a.price/100).toFixed(2):a.defaultPrice?(a.defaultPrice/100).toFixed(2):'N/A',description:a.description||'',isVeg:1===a.isVeg||'VEG'===a.itemAttribute?.vegClassifier})}))}if(e?.card?.card?.categories){const t=e.card.card.title||'Others';e.card.card.categories.forEach((e=>{const a=e.title||t;e.itemCards?.forEach((e=>{const t=e?.card?.info;t&&t.name&&s.push({category:a,name:t.name,price:t.price?(t.price/100).toFixed(2):t.defaultPrice?(t.defaultPrice/100).toFixed(2):'N/A',description:t.description||'',isVeg:1===t.isVeg||'VEG'===t.itemAttribute?.vegClassifier})}))}))}}catch(e){}}));const d={restaurantName:o.name,cuisine:o.cuisines?.join(', ')||'N/A',area:o.areaName||'N/A',menu:s};document.getElementById('extractor-status').innerHTML=`\n                <div style='color:#4caf50;font-weight:bold;margin-bottom:15px'>✅ Extracted ${s.length} items!</div>\n                <div style='background:#f5f5f5;padding:12px;border-radius:8px;margin:10px 0'>\n                    <strong>${d.restaurantName}</strong><br>\n                    <small style='color:#666'>${d.cuisine}</small>\n                </div>\n                <button onclick='window.downloadSwiggyMenu()' style='width:100%;padding:15px;background:#667eea;color:white;border:none;border-radius:8px;cursor:pointer;font-size:1.1em;font-weight:bold'>📥 Download Excel</button>\n            `,window.downloadSwiggyMenu=function(){const e=s.map((e=>({Category:e.category,'Item Name':e.name,Type:e.isVeg?'Veg':'Non-Veg','Price (₹)':e.price,Description:e.description||'N/A'}))),t=XLSX.utils.book_new(),a=XLSX.utils.json_to_sheet(e);a['!cols']=[{wch:20},{wch:35},{wch:12},{wch:10},{wch:50}],XLSX.utils.book_append_sheet(t,a,'Menu');const o=d.restaurantName.replace(/[^a-z0-9]/gi,'_').toLowerCase();XLSX.writeFile(t,`${o}_menu.xlsx`)}}catch(e){document.getElementById('extractor-status').innerHTML=`<div style='color:#f44336'>❌ Error: ${e.message}</div>`}}e()})();" class="bookmarklet-btn">
-                        📥 Extract Swiggy Menu
-                    </a>
-                </div>
-                <div class="highlight">
-                    <strong>💡 Tip:</strong> If you don't see the bookmarks bar, press <code>Ctrl+Shift+B</code> (Windows) or <code>Cmd+Shift+B</code> (Mac) to show it.
-                </div>
+        <div class="input-group">
+            <label for="restaurantId">Restaurant ID (numbers only):</label>
+            <input type="text" id="restaurantId" placeholder="e.g., 34908" />
+            <div class="example">
+                Example: For URL "https://www.swiggy.com/city/bangalore/meghana-foods-rest34908", enter: <strong>34908</strong>
             </div>
         </div>
 
-        <div class="step">
-            <div class="step-title">
-                <span class="step-number">2</span>
-                Visit Any Swiggy Restaurant Page
-            </div>
-            <div class="step-content">
-                <p>Go to Swiggy.com and open any restaurant page. For example:</p>
-                <div class="code-block">
-                    https://www.swiggy.com/city/bangalore/meghana-foods-rest34908
-                </div>
-            </div>
+        <button onclick="extractMenu()" id="extractBtn">🔍 Extract Menu</button>
+
+        <div class="loader" id="loader">
+            <div class="spinner"></div>
+            <p>Extracting menu data...</p>
         </div>
 
-        <div class="step">
-            <div class="step-title">
-                <span class="step-number">3</span>
-                Click the Bookmark
-            </div>
-            <div class="step-content">
-                <p>Click the "Extract Swiggy Menu" bookmark you saved in Step 1. A popup will appear showing the extraction progress.</p>
-            </div>
-        </div>
+        <div class="error" id="error"></div>
 
-        <div class="step">
-            <div class="step-title">
-                <span class="step-number">4</span>
-                Download Your Menu
-            </div>
-            <div class="step-content">
-                <p>Once extraction is complete, click the "Download Excel" button to get the full menu in Excel format!</p>
-            </div>
-        </div>
-
-        <div style="margin-top: 40px; padding: 30px; background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); border-radius: 15px;">
-            <h3 style="color: #333; margin-bottom: 20px; text-align: center;">✨ Features</h3>
-            <div class="feature">Works on ANY Swiggy restaurant page</div>
-            <div class="feature">Extracts complete menu with prices</div>
-            <div class="feature">Veg/Non-veg indicators included</div>
-            <div class="feature">Downloads as organized Excel file</div>
-            <div class="feature">100% free, no registration needed</div>
-            <div class="feature">Works offline after first use</div>
-        </div>
-
-        <div style="margin-top: 30px; padding: 20px; background: #e3f2fd; border-radius: 10px; text-align: center;">
-            <p style="color: #1976d2; font-size: 1.1em; margin: 0;">
-                <strong>🎉 This solution works 100% - No server errors possible!</strong>
-            </p>
-            <p style="color: #666; margin-top: 10px; font-size: 0.95em;">
-                The bookmarklet runs directly on the Swiggy page in your browser, extracting data that's already loaded.
-            </p>
+        <div class="result" id="result">
+            <div class="restaurant-info" id="restaurantInfo"></div>
+            <button onclick="downloadExcel()" style="margin-bottom: 20px;">📥 Download as Excel</button>
+            <div class="menu-list" id="menuList"></div>
         </div>
     </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        let menuData = [];
+        let restaurantData = {};
+
+        async function extractMenu() {
+            const restaurantId = document.getElementById('restaurantId').value.trim();
+            
+            if (!restaurantId) {
+                showError('Please enter a restaurant ID');
+                return;
+            }
+
+            if (!/^\d+$/.test(restaurantId)) {
+                showError('Please enter only numbers (e.g., 34908)');
+                return;
+            }
+
+            showLoader(true);
+            hideError();
+            hideResult();
+
+            try {
+                // Using a working CORS proxy
+                const apiUrl = `https://www.swiggy.com/dapi/menu/pl?page-type=REGULAR_MENU&complete-menu=true&lat=12.9715987&lng=77.5945627&restaurantId=${restaurantId}`;
+                
+                const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl)}`;
+                
+                const response = await fetch(proxyUrl);
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch menu. Please check the restaurant ID.');
+                }
+
+                const data = await response.json();
+
+                // Extract restaurant info
+                let restaurantInfo = null;
+                const cards = data?.data?.cards || [];
+                
+                for (const card of cards) {
+                    if (card?.card?.card?.info) {
+                        restaurantInfo = card.card.card.info;
+                        break;
+                    }
+                }
+
+                if (!restaurantInfo) {
+                    throw new Error('Restaurant not found. Please verify the ID is correct.');
+                }
+
+                // Extract menu items
+                const menuCards = data?.data?.cards?.find(card => 
+                    card?.groupedCard?.cardGroupMap?.REGULAR
+                )?.groupedCard?.cardGroupMap?.REGULAR?.cards || [];
+
+                const menuItems = [];
+
+                menuCards.forEach(card => {
+                    try {
+                        if (card?.card?.card?.itemCards) {
+                            const category = card.card.card.title || 'Others';
+                            card.card.card.itemCards.forEach(itemCard => {
+                                const item = itemCard?.card?.info;
+                                if (item && item.name) {
+                                    menuItems.push({
+                                        category: category,
+                                        name: item.name,
+                                        price: item.price ? (item.price / 100).toFixed(2) : 
+                                               item.defaultPrice ? (item.defaultPrice / 100).toFixed(2) : 'N/A',
+                                        description: item.description || '',
+                                        isVeg: item.isVeg === 1
+                                    });
+                                }
+                            });
+                        }
+                        
+                        if (card?.card?.card?.categories) {
+                            const mainCategory = card.card.card.title || 'Others';
+                            card.card.card.categories.forEach(subCategory => {
+                                const category = subCategory.title || mainCategory;
+                                subCategory.itemCards?.forEach(itemCard => {
+                                    const item = itemCard?.card?.info;
+                                    if (item && item.name) {
+                                        menuItems.push({
+                                            category: category,
+                                            name: item.name,
+                                            price: item.price ? (item.price / 100).toFixed(2) : 
+                                                   item.defaultPrice ? (item.defaultPrice / 100).toFixed(2) : 'N/A',
+                                            description: item.description || '',
+                                            isVeg: item.isVeg === 1
+                                        });
+                                    }
+                                });
+                            });
+                        }
+                    } catch (err) {
+                        console.error('Error parsing item:', err);
+                    }
+                });
+
+                if (menuItems.length === 0) {
+                    throw new Error('No menu items found for this restaurant.');
+                }
+
+                menuData = menuItems;
+                restaurantData = {
+                    name: restaurantInfo.name,
+                    cuisine: restaurantInfo.cuisines?.join(', ') || 'N/A',
+                    area: restaurantInfo.areaName || 'N/A',
+                    rating: restaurantInfo.avgRating || 'N/A'
+                };
+
+                displayMenu();
+                showResult();
+
+            } catch (error) {
+                console.error('Error:', error);
+                showError(error.message || 'Failed to extract menu. Please try again.');
+            } finally {
+                showLoader(false);
+            }
+        }
+
+        function displayMenu() {
+            document.getElementById('restaurantInfo').innerHTML = `
+                <h2>${restaurantData.name}</h2>
+                <p><strong>Cuisine:</strong> ${restaurantData.cuisine}</p>
+                <p><strong>Area:</strong> ${restaurantData.area}</p>
+                <p><strong>Rating:</strong> ⭐ ${restaurantData.rating}</p>
+                <p><strong>Total Items:</strong> ${menuData.length}</p>
+            `;
+
+            let html = '';
+            menuData.forEach(item => {
+                html += `
+                    <div class="menu-item">
+                        <div>
+                            <span class="item-name">${item.isVeg ? '🟢' : '🔴'} ${item.name}</span>
+                            <div style="color:#666;font-size:0.9em;margin-top:5px">${item.category}</div>
+                        </div>
+                        <span class="item-price">₹${item.price}</span>
+                    </div>
+                `;
+            });
+            document.getElementById('menuList').innerHTML = html;
+        }
+
+        function downloadExcel() {
+            const data = menuData.map(item => ({
+                'Category': item.category,
+                'Item Name': item.name,
+                'Type': item.isVeg ? 'Vegetarian' : 'Non-Vegetarian',
+                'Price (₹)': item.price,
+                'Description': item.description || 'N/A'
+            }));
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(data);
+            ws['!cols'] = [{ wch: 20 }, { wch: 35 }, { wch: 15 }, { wch: 12 }, { wch: 50 }];
+            XLSX.utils.book_append_sheet(wb, ws, 'Menu');
+            
+            const filename = `${restaurantData.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_menu.xlsx`;
+            XLSX.writeFile(wb, filename);
+        }
+
+        function showLoader(show) {
+            document.getElementById('loader').classList.toggle('show', show);
+            document.getElementById('extractBtn').disabled = show;
+        }
+
+        function showError(msg) {
+            const el = document.getElementById('error');
+            el.textContent = '❌ ' + msg;
+            el.classList.add('show');
+        }
+
+        function hideError() {
+            document.getElementById('error').classList.remove('show');
+        }
+
+        function showResult() {
+            document.getElementById('result').classList.add('show');
+        }
+
+        function hideResult() {
+            document.getElementById('result').classList.remove('show');
+        }
+
+        // Allow Enter key
+        document.getElementById('restaurantId').addEventListener('keypress', e => {
+            if (e.key === 'Enter') extractMenu();
+        });
+    </script>
 </body>
 </html>
