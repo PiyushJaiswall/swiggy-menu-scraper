@@ -220,7 +220,7 @@
 
         .example-link {
             color: #667eea;
-            text-decoration: none;
+            cursor: pointer;
             font-size: 0.9em;
         }
 
@@ -235,7 +235,7 @@
         <p class="subtitle">Extract and download restaurant menus from Swiggy</p>
 
         <div class="info">
-            <strong>📌 How to use:</strong> Copy any Swiggy restaurant URL from your browser and paste it below. Make sure the URL contains "rest" followed by numbers.
+            <strong>📌 How to use:</strong> Copy any Swiggy restaurant URL from your browser and paste it below.
         </div>
 
         <div class="input-section">
@@ -248,7 +248,7 @@
             </div>
             <button id="scrapeBtn" onclick="scrapeMenu()">Extract Menu</button>
             <p style="margin-top: 10px; color: #666; font-size: 0.9em;">
-                Example: <span class="example-link">https://www.swiggy.com/city/bangalore/restaurant-name-rest12345</span>
+                Example: <span class="example-link" onclick="fillExample()">https://www.swiggy.com/city/bangalore/meghana-foods-rest34908</span>
             </p>
         </div>
 
@@ -273,12 +273,63 @@
         let menuData = [];
         let restaurantData = {};
 
-        // Extract city coordinates from URL or use defaults
+        function fillExample() {
+            document.getElementById('swiggyUrl').value = 'https://www.swiggy.com/city/bangalore/meghana-foods-residency-road-shanthala-nagar-rest34908';
+        }
+
+        // CORS Proxies with fallback
+        const CORS_PROXIES = [
+            'https://api.codetabs.com/v1/proxy?quest=',
+            'https://corsproxy.io/?',
+            'https://api.allorigins.win/get?url='
+        ];
+
+        async function fetchWithProxy(url) {
+            let lastError;
+            
+            for (let i = 0; i < CORS_PROXIES.length; i++) {
+                try {
+                    const proxyUrl = CORS_PROXIES[i] + encodeURIComponent(url);
+                    console.log(`Trying proxy ${i + 1}:`, CORS_PROXIES[i]);
+                    
+                    const response = await fetch(proxyUrl, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`Proxy returned ${response.status}`);
+                    }
+                    
+                    const text = await response.text();
+                    
+                    // Handle allorigins format
+                    if (CORS_PROXIES[i].includes('allorigins')) {
+                        const wrapper = JSON.parse(text);
+                        if (wrapper.contents) {
+                            return JSON.parse(wrapper.contents);
+                        }
+                    }
+                    
+                    // Direct JSON response
+                    return JSON.parse(text);
+                    
+                } catch (error) {
+                    console.error(`Proxy ${i + 1} failed:`, error.message);
+                    lastError = error;
+                    // Try next proxy
+                }
+            }
+            
+            throw lastError || new Error('All proxies failed');
+        }
+
         function extractLocationFromUrl(url) {
             const cityMatch = url.match(/\/city\/([^\/]+)\//);
             const city = cityMatch ? cityMatch[1] : 'bangalore';
             
-            // Common city coordinates (you can expand this)
             const cityCoords = {
                 'bangalore': { lat: '12.9715987', lng: '77.5945627' },
                 'delhi': { lat: '28.7041', lng: '77.1025' },
@@ -300,10 +351,9 @@
                 return;
             }
 
-            // Extract restaurant ID from URL
             const restaurantIdMatch = url.match(/rest(\d+)/);
             if (!restaurantIdMatch) {
-                showError('Invalid Swiggy URL. Please ensure it contains "rest" followed by numbers (e.g., rest34908).');
+                showError('Invalid Swiggy URL. Please ensure it contains "rest" followed by numbers.');
                 return;
             }
 
@@ -317,23 +367,12 @@
             try {
                 console.log('Fetching menu for restaurant:', restaurantId);
                 
-                // Build Swiggy API URL
-                const apiUrl = `https://www.swiggy.com/dapi/menu/pl?page-type=REGULAR_MENU&complete-menu=true&lat=${location.lat}&lng=${location.lng}&restaurantId=${restaurantId}&catalog_qa=undefined&submitAction=ENTER`;
+                const apiUrl = `https://www.swiggy.com/dapi/menu/pl?page-type=REGULAR_MENU&complete-menu=true&lat=${location.lat}&lng=${location.lng}&restaurantId=${restaurantId}`;
                 
-                console.log('API URL:', apiUrl);
+                console.log('Fetching from Swiggy API...');
+                const data = await fetchWithProxy(apiUrl);
                 
-                // Use CORS proxy to bypass restrictions
-                const proxyUrl = 'https://api.allorigins.win/raw?url=';
-                const response = await fetch(proxyUrl + encodeURIComponent(apiUrl));
-                
-                console.log('Response status:', response.status);
-                
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch data: ${response.status}`);
-                }
-
-                const data = await response.json();
-                console.log('Data received');
+                console.log('Data received successfully');
 
                 // Extract restaurant info
                 let restaurantInfo = null;
@@ -347,7 +386,7 @@
                 }
 
                 if (!restaurantInfo) {
-                    throw new Error('Restaurant not found. The URL might be invalid or the restaurant may not be available.');
+                    throw new Error('Restaurant not found. Please verify the URL is correct.');
                 }
 
                 // Extract menu items
@@ -359,7 +398,6 @@
 
                 menuCards.forEach(card => {
                     try {
-                        // Handle regular item cards
                         if (card?.card?.card?.itemCards) {
                             const category = card.card.card.title || 'Others';
                             card.card.card.itemCards.forEach(itemCard => {
@@ -378,7 +416,6 @@
                             });
                         }
                         
-                        // Handle nested categories
                         if (card?.card?.card?.categories) {
                             const mainCategory = card.card.card.title || 'Others';
                             card.card.card.categories.forEach(subCategory => {
@@ -407,7 +444,7 @@
                 console.log(`Successfully parsed ${menuItems.length} menu items`);
 
                 if (menuItems.length === 0) {
-                    throw new Error('No menu items found for this restaurant. The restaurant might not have any items listed.');
+                    throw new Error('No menu items found for this restaurant.');
                 }
 
                 menuData = menuItems;
@@ -417,37 +454,36 @@
                     area: restaurantInfo.areaName || restaurantInfo.locality || 'N/A',
                     city: restaurantInfo.city || 'N/A',
                     rating: restaurantInfo.avgRating || 'N/A',
+                    costForTwo: restaurantInfo.costForTwoMessage || 'N/A',
                     menu: menuItems
                 };
 
                 displayMenu(restaurantData);
                 showMenu();
                 
-                console.log('Menu displayed successfully');
+                console.log('✅ Menu displayed successfully');
             } catch (error) {
-                console.error('Scraping error:', error);
-                showError(error.message || 'An error occurred while fetching the menu. Please verify the URL is correct and try again.');
+                console.error('❌ Scraping error:', error);
+                showError(error.message || 'Failed to fetch menu. Please verify the URL and try again.');
             } finally {
                 showLoader(false);
             }
         }
 
         function displayMenu(data) {
-            // Display restaurant info
             const restaurantInfo = document.getElementById('restaurantInfo');
             restaurantInfo.innerHTML = `
                 <h2>${data.restaurantName}</h2>
-                <p><strong>Cuisine:</strong> ${data.cuisine || 'N/A'}</p>
-                <p><strong>Area:</strong> ${data.area || 'N/A'}${data.city ? ', ' + data.city : ''}</p>
+                <p><strong>Cuisine:</strong> ${data.cuisine}</p>
+                <p><strong>Location:</strong> ${data.area}, ${data.city}</p>
                 ${data.rating && data.rating !== 'N/A' ? `<p><strong>Rating:</strong> ⭐ ${data.rating}</p>` : ''}
+                ${data.costForTwo && data.costForTwo !== 'N/A' ? `<p><strong>Cost:</strong> ${data.costForTwo}</p>` : ''}
                 <p><strong>Total Items:</strong> ${data.menu.length}</p>
             `;
 
-            // Display menu items
             const menuItems = document.getElementById('menuItems');
             const categories = {};
 
-            // Group items by category
             data.menu.forEach(item => {
                 if (!categories[item.category]) {
                     categories[item.category] = [];
@@ -455,22 +491,16 @@
                 categories[item.category].push(item);
             });
 
-            // Render categories and items
             let html = '';
             for (const [category, items] of Object.entries(categories)) {
-                html += `
-                    <div class="menu-category">
-                        <div class="category-title">${category}</div>
-                `;
+                html += `<div class="menu-category"><div class="category-title">${category}</div>`;
 
                 items.forEach(item => {
                     const vegSymbol = item.isVeg ? '🟢' : '🔴';
                     html += `
                         <div class="menu-item">
                             <div class="item-details">
-                                <h4>
-                                    ${vegSymbol} ${item.name}
-                                </h4>
+                                <h4>${vegSymbol} ${item.name}</h4>
                                 ${item.description ? `<p class="item-description">${item.description}</p>` : ''}
                             </div>
                             <div class="item-price">₹${item.price}</div>
@@ -490,7 +520,6 @@
                 return;
             }
 
-            // Prepare data for Excel
             const excelData = menuData.map(item => ({
                 'Category': item.category,
                 'Item Name': item.name,
@@ -499,44 +528,29 @@
                 'Description': item.description || 'N/A'
             }));
 
-            // Create workbook and worksheet
             const wb = XLSX.utils.book_new();
             const ws = XLSX.utils.json_to_sheet(excelData);
 
-            // Set column widths
             ws['!cols'] = [
-                { wch: 20 },  // Category
-                { wch: 35 },  // Item Name
-                { wch: 15 },  // Type
-                { wch: 12 },  // Price
-                { wch: 50 }   // Description
+                { wch: 20 }, { wch: 35 }, { wch: 15 }, { wch: 12 }, { wch: 50 }
             ];
 
-            // Add worksheet to workbook
             XLSX.utils.book_append_sheet(wb, ws, 'Menu');
 
-            // Generate filename
             const restaurantName = restaurantData.restaurantName ? 
                 restaurantData.restaurantName.replace(/[^a-z0-9]/gi, '_').toLowerCase() : 
                 'swiggy_menu';
-            const filename = `${restaurantName}_${new Date().toISOString().split('T')[0]}.xlsx`;
+            const filename = `${restaurantName}_menu.xlsx`;
 
-            // Download
             XLSX.writeFile(wb, filename);
-            
-            console.log('Excel file downloaded:', filename);
+            console.log('✅ Downloaded:', filename);
         }
 
         function showLoader(show) {
             const loader = document.getElementById('loader');
             const btn = document.getElementById('scrapeBtn');
-            if (show) {
-                loader.classList.add('active');
-                btn.disabled = true;
-            } else {
-                loader.classList.remove('active');
-                btn.disabled = false;
-            }
+            loader.classList.toggle('active', show);
+            btn.disabled = show;
         }
 
         function showError(message) {
@@ -546,8 +560,7 @@
         }
 
         function hideError() {
-            const error = document.getElementById('error');
-            error.classList.remove('active');
+            document.getElementById('error').classList.remove('active');
         }
 
         function showMenu() {
@@ -558,11 +571,8 @@
             document.getElementById('menuDisplay').classList.remove('active');
         }
 
-        // Allow Enter key to trigger scraping
         document.getElementById('swiggyUrl').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                scrapeMenu();
-            }
+            if (e.key === 'Enter') scrapeMenu();
         });
     </script>
 </body>
