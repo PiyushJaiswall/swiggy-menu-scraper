@@ -1,11 +1,7 @@
 {
   "name": "swiggy-menu-scraper",
   "version": "1.0.0",
-  "description": "Swiggy restaurant menu scraper",
-  "main": "index.js",
-  "scripts": {
-    "dev": "vercel dev"
-  },
-  "dependencies": {},
-  "devDependencies": {}
+  "dependencies": {
+    "node-fetch": "^2.6.1"
+  }
 }
