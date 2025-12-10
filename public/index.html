@@ -129,6 +129,16 @@
             display: block;
         }
 
+        .info {
+            background: #e3f2fd;
+            border: 2px solid #90caf9;
+            color: #1976d2;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-size: 0.9em;
+        }
+
         .menu-display {
             margin-top: 30px;
             display: none;
@@ -199,22 +209,8 @@
             color: #667eea;
             font-weight: bold;
             font-size: 1.1em;
-        }
-
-        .veg-indicator {
-            display: inline-block;
-            width: 15px;
-            height: 15px;
-            border-radius: 3px;
-            margin-right: 8px;
-        }
-
-        .veg {
-            border: 2px solid #0f8a3d;
-        }
-
-        .non-veg {
-            border: 2px solid #e43b4f;
+            white-space: nowrap;
+            margin-left: 15px;
         }
 
         .download-section {
@@ -237,6 +233,10 @@
     <div class="container">
         <h1>🍽️ Swiggy Menu Scraper</h1>
         <p class="subtitle">Extract and download restaurant menus from Swiggy</p>
+
+        <div class="info">
+            <strong>📌 How to use:</strong> Copy any Swiggy restaurant URL from your browser and paste it below. Make sure the URL contains "rest" followed by numbers.
+        </div>
 
         <div class="input-section">
             <div class="input-group">
@@ -267,11 +267,30 @@
             <div class="menu-items" id="menuItems"></div>
         </div>
     </div>
-    
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
         let menuData = [];
         let restaurantData = {};
+
+        // Extract city coordinates from URL or use defaults
+        function extractLocationFromUrl(url) {
+            const cityMatch = url.match(/\/city\/([^\/]+)\//);
+            const city = cityMatch ? cityMatch[1] : 'bangalore';
+            
+            // Common city coordinates (you can expand this)
+            const cityCoords = {
+                'bangalore': { lat: '12.9715987', lng: '77.5945627' },
+                'delhi': { lat: '28.7041', lng: '77.1025' },
+                'mumbai': { lat: '19.0760', lng: '72.8777' },
+                'hyderabad': { lat: '17.3850', lng: '78.4867' },
+                'pune': { lat: '18.5204', lng: '73.8567' },
+                'chennai': { lat: '13.0827', lng: '80.2707' },
+                'kolkata': { lat: '22.5726', lng: '88.3639' }
+            };
+            
+            return cityCoords[city] || cityCoords['bangalore'];
+        }
 
         async function scrapeMenu() {
             const url = document.getElementById('swiggyUrl').value.trim();
@@ -284,11 +303,12 @@
             // Extract restaurant ID from URL
             const restaurantIdMatch = url.match(/rest(\d+)/);
             if (!restaurantIdMatch) {
-                showError('Invalid Swiggy URL. Please ensure it contains "rest" followed by numbers.');
+                showError('Invalid Swiggy URL. Please ensure it contains "rest" followed by numbers (e.g., rest34908).');
                 return;
             }
 
             const restaurantId = restaurantIdMatch[1];
+            const location = extractLocationFromUrl(url);
             
             showLoader(true);
             hideError();
@@ -297,39 +317,116 @@
             try {
                 console.log('Fetching menu for restaurant:', restaurantId);
                 
-                const response = await fetch(`/api/scrape-menu?restaurantId=${restaurantId}`);
+                // Build Swiggy API URL
+                const apiUrl = `https://www.swiggy.com/dapi/menu/pl?page-type=REGULAR_MENU&complete-menu=true&lat=${location.lat}&lng=${location.lng}&restaurantId=${restaurantId}&catalog_qa=undefined&submitAction=ENTER`;
+                
+                console.log('API URL:', apiUrl);
+                
+                // Use CORS proxy to bypass restrictions
+                const proxyUrl = 'https://api.allorigins.win/raw?url=';
+                const response = await fetch(proxyUrl + encodeURIComponent(apiUrl));
                 
                 console.log('Response status:', response.status);
                 
-                // Get response text first to handle non-JSON errors
-                const responseText = await response.text();
-                console.log('Response received');
-                
-                let data;
-                try {
-                    data = JSON.parse(responseText);
-                } catch (e) {
-                    console.error('JSON parse error:', e);
-                    throw new Error('Server returned invalid response. Please try again.');
-                }
-
                 if (!response.ok) {
-                    throw new Error(data.error || `Server error: ${response.status}`);
+                    throw new Error(`Failed to fetch data: ${response.status}`);
                 }
 
-                if (!data.menu || data.menu.length === 0) {
-                    throw new Error('No menu items found for this restaurant');
+                const data = await response.json();
+                console.log('Data received');
+
+                // Extract restaurant info
+                let restaurantInfo = null;
+                const cards = data?.data?.cards || [];
+                
+                for (const card of cards) {
+                    if (card?.card?.card?.info) {
+                        restaurantInfo = card.card.card.info;
+                        break;
+                    }
                 }
 
-                menuData = data.menu;
-                restaurantData = data;
-                displayMenu(data);
+                if (!restaurantInfo) {
+                    throw new Error('Restaurant not found. The URL might be invalid or the restaurant may not be available.');
+                }
+
+                // Extract menu items
+                const menuCards = data?.data?.cards?.find(card => 
+                    card?.groupedCard?.cardGroupMap?.REGULAR
+                )?.groupedCard?.cardGroupMap?.REGULAR?.cards || [];
+
+                const menuItems = [];
+
+                menuCards.forEach(card => {
+                    try {
+                        // Handle regular item cards
+                        if (card?.card?.card?.itemCards) {
+                            const category = card.card.card.title || 'Others';
+                            card.card.card.itemCards.forEach(itemCard => {
+                                const item = itemCard?.card?.info;
+                                if (item && item.name) {
+                                    menuItems.push({
+                                        category: category,
+                                        name: item.name,
+                                        price: item.price ? (item.price / 100).toFixed(2) : 
+                                               item.defaultPrice ? (item.defaultPrice / 100).toFixed(2) : 
+                                               item.finalPrice ? (item.finalPrice / 100).toFixed(2) : 'N/A',
+                                        description: item.description || '',
+                                        isVeg: item.isVeg === 1 || item.itemAttribute?.vegClassifier === 'VEG'
+                                    });
+                                }
+                            });
+                        }
+                        
+                        // Handle nested categories
+                        if (card?.card?.card?.categories) {
+                            const mainCategory = card.card.card.title || 'Others';
+                            card.card.card.categories.forEach(subCategory => {
+                                const category = subCategory.title || mainCategory;
+                                subCategory.itemCards?.forEach(itemCard => {
+                                    const item = itemCard?.card?.info;
+                                    if (item && item.name) {
+                                        menuItems.push({
+                                            category: category,
+                                            name: item.name,
+                                            price: item.price ? (item.price / 100).toFixed(2) : 
+                                                   item.defaultPrice ? (item.defaultPrice / 100).toFixed(2) : 
+                                                   item.finalPrice ? (item.finalPrice / 100).toFixed(2) : 'N/A',
+                                            description: item.description || '',
+                                            isVeg: item.isVeg === 1 || item.itemAttribute?.vegClassifier === 'VEG'
+                                        });
+                                    }
+                                });
+                            });
+                        }
+                    } catch (err) {
+                        console.error('Error parsing menu card:', err);
+                    }
+                });
+
+                console.log(`Successfully parsed ${menuItems.length} menu items`);
+
+                if (menuItems.length === 0) {
+                    throw new Error('No menu items found for this restaurant. The restaurant might not have any items listed.');
+                }
+
+                menuData = menuItems;
+                restaurantData = {
+                    restaurantName: restaurantInfo.name || 'Unknown Restaurant',
+                    cuisine: restaurantInfo.cuisines?.join(', ') || 'N/A',
+                    area: restaurantInfo.areaName || restaurantInfo.locality || 'N/A',
+                    city: restaurantInfo.city || 'N/A',
+                    rating: restaurantInfo.avgRating || 'N/A',
+                    menu: menuItems
+                };
+
+                displayMenu(restaurantData);
                 showMenu();
                 
                 console.log('Menu displayed successfully');
             } catch (error) {
                 console.error('Scraping error:', error);
-                showError(error.message || 'An error occurred while fetching the menu. Please verify the URL and try again.');
+                showError(error.message || 'An error occurred while fetching the menu. Please verify the URL is correct and try again.');
             } finally {
                 showLoader(false);
             }
@@ -342,7 +439,7 @@
                 <h2>${data.restaurantName}</h2>
                 <p><strong>Cuisine:</strong> ${data.cuisine || 'N/A'}</p>
                 <p><strong>Area:</strong> ${data.area || 'N/A'}${data.city ? ', ' + data.city : ''}</p>
-                ${data.rating ? `<p><strong>Rating:</strong> ⭐ ${data.rating}</p>` : ''}
+                ${data.rating && data.rating !== 'N/A' ? `<p><strong>Rating:</strong> ⭐ ${data.rating}</p>` : ''}
                 <p><strong>Total Items:</strong> ${data.menu.length}</p>
             `;
 
@@ -367,14 +464,12 @@
                 `;
 
                 items.forEach(item => {
-                    const vegClass = item.isVeg ? 'veg' : 'non-veg';
                     const vegSymbol = item.isVeg ? '🟢' : '🔴';
                     html += `
                         <div class="menu-item">
                             <div class="item-details">
                                 <h4>
-                                    ${vegSymbol}
-                                    ${item.name}
+                                    ${vegSymbol} ${item.name}
                                 </h4>
                                 ${item.description ? `<p class="item-description">${item.description}</p>` : ''}
                             </div>
@@ -424,7 +519,7 @@
             const restaurantName = restaurantData.restaurantName ? 
                 restaurantData.restaurantName.replace(/[^a-z0-9]/gi, '_').toLowerCase() : 
                 'swiggy_menu';
-            const filename = `${restaurantName}_${Date.now()}.xlsx`;
+            const filename = `${restaurantName}_${new Date().toISOString().split('T')[0]}.xlsx`;
 
             // Download
             XLSX.writeFile(wb, filename);
@@ -472,4 +567,3 @@
     </script>
 </body>
 </html>
-
