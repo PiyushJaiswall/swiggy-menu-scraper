@@ -24,7 +24,6 @@
             text-align: center;
             color: #333;
             margin-bottom: 30px;
-            font-size: 2.5em;
         }
         .alert {
             background: #fff3cd;
@@ -32,21 +31,6 @@
             padding: 20px;
             border-radius: 10px;
             margin-bottom: 30px;
-            color: #856404;
-        }
-        .alert strong {
-            display: block;
-            margin-bottom: 10px;
-            font-size: 1.1em;
-        }
-        .input-group {
-            margin-bottom: 20px;
-        }
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-            color: #333;
         }
         input {
             width: 100%;
@@ -54,10 +38,7 @@
             border: 2px solid #ddd;
             border-radius: 8px;
             font-size: 16px;
-        }
-        input:focus {
-            outline: none;
-            border-color: #667eea;
+            margin: 10px 0;
         }
         button {
             width: 100%;
@@ -71,42 +52,17 @@
             cursor: pointer;
             margin-top: 20px;
         }
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-        button:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
+        button:disabled { background: #ccc; }
         .result {
             margin-top: 30px;
             display: none;
         }
-        .result.show {
-            display: block;
-        }
+        .result.show { display: block; }
         .restaurant-info {
             background: #f8f9fa;
             padding: 20px;
             border-radius: 10px;
             margin-bottom: 20px;
-        }
-        .restaurant-info h2 {
-            color: #333;
-            margin-bottom: 15px;
-        }
-        .restaurant-info p {
-            color: #666;
-            margin: 8px 0;
-            font-size: 1.05em;
-        }
-        .menu-list {
-            max-height: 400px;
-            overflow-y: auto;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 15px;
         }
         .menu-item {
             background: #f8f9fa;
@@ -115,36 +71,21 @@
             border-radius: 6px;
             display: flex;
             justify-content: space-between;
-            align-items: center;
-        }
-        .item-name {
-            font-weight: 600;
-            color: #333;
-        }
-        .item-price {
-            color: #667eea;
-            font-weight: bold;
         }
         .error {
             background: #f8d7da;
-            border: 2px solid #f5c6cb;
-            color: #721c24;
             padding: 15px;
             border-radius: 8px;
             margin-top: 20px;
             display: none;
         }
-        .error.show {
-            display: block;
-        }
+        .error.show { display: block; }
         .loader {
             text-align: center;
             padding: 30px;
             display: none;
         }
-        .loader.show {
-            display: block;
-        }
+        .loader.show { display: block; }
         .spinner {
             border: 4px solid #f3f3f3;
             border-top: 4px solid #667eea;
@@ -152,19 +93,11 @@
             width: 50px;
             height: 50px;
             animation: spin 1s linear infinite;
-            margin: 0 auto 15px;
+            margin: 0 auto;
         }
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
-        }
-        .example {
-            background: #e7f3ff;
-            padding: 12px;
-            border-radius: 6px;
-            margin-top: 10px;
-            font-size: 0.9em;
-            color: #0066cc;
         }
     </style>
 </head>
@@ -173,34 +106,24 @@
         <h1>🍽️ Swiggy Menu Extractor</h1>
         
         <div class="alert">
-            <strong>📌 How to Get Restaurant ID:</strong>
-            1. Go to Swiggy.com and open any restaurant<br>
-            2. Look at the URL: https://www.swiggy.com/.../<strong>rest34908</strong><br>
-            3. Copy the numbers after "rest" (e.g., <strong>34908</strong>)<br>
-            4. Paste below and click Extract!
+            <strong>How to use:</strong><br>
+            Enter restaurant ID from Swiggy URL (e.g., 34908 from "rest34908")
         </div>
 
-        <div class="input-group">
-            <label for="restaurantId">Restaurant ID (numbers only):</label>
-            <input type="text" id="restaurantId" placeholder="e.g., 34908" />
-            <div class="example">
-                Example: For URL "https://www.swiggy.com/city/bangalore/meghana-foods-rest34908", enter: <strong>34908</strong>
-            </div>
-        </div>
-
-        <button onclick="extractMenu()" id="extractBtn">🔍 Extract Menu</button>
+        <input type="text" id="restaurantId" placeholder="Enter Restaurant ID (e.g., 34908)" />
+        <button onclick="extractMenu()">🔍 Extract Menu</button>
 
         <div class="loader" id="loader">
             <div class="spinner"></div>
-            <p>Extracting menu data...</p>
+            <p>Fetching menu...</p>
         </div>
 
         <div class="error" id="error"></div>
 
         <div class="result" id="result">
-            <div class="restaurant-info" id="restaurantInfo"></div>
-            <button onclick="downloadExcel()" style="margin-bottom: 20px;">📥 Download as Excel</button>
-            <div class="menu-list" id="menuList"></div>
+            <div class="restaurant-info" id="info"></div>
+            <button onclick="downloadExcel()">📥 Download Excel</button>
+            <div id="menuList"></div>
         </div>
     </div>
 
@@ -212,13 +135,8 @@
         async function extractMenu() {
             const restaurantId = document.getElementById('restaurantId').value.trim();
             
-            if (!restaurantId) {
-                showError('Please enter a restaurant ID');
-                return;
-            }
-
-            if (!/^\d+$/.test(restaurantId)) {
-                showError('Please enter only numbers (e.g., 34908)');
+            if (!restaurantId || !/^\d+$/.test(restaurantId)) {
+                showError('Please enter valid restaurant ID (numbers only)');
                 return;
             }
 
@@ -227,109 +145,33 @@
             hideResult();
 
             try {
-                // Using a working CORS proxy
-                const apiUrl = `https://www.swiggy.com/dapi/menu/pl?page-type=REGULAR_MENU&complete-menu=true&lat=12.9715987&lng=77.5945627&restaurantId=${restaurantId}`;
-                
-                const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl)}`;
-                
-                const response = await fetch(proxyUrl);
+                const response = await fetch(`/.netlify/functions/proxy?restaurantId=${restaurantId}`);
                 
                 if (!response.ok) {
-                    throw new Error('Failed to fetch menu. Please check the restaurant ID.');
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to fetch menu');
                 }
 
                 const data = await response.json();
 
-                // Extract restaurant info
-                let restaurantInfo = null;
-                const cards = data?.data?.cards || [];
-                
-                for (const card of cards) {
-                    if (card?.card?.card?.info) {
-                        restaurantInfo = card.card.card.info;
-                        break;
-                    }
+                if (!data.menu || data.menu.length === 0) {
+                    throw new Error('No menu items found');
                 }
 
-                if (!restaurantInfo) {
-                    throw new Error('Restaurant not found. Please verify the ID is correct.');
-                }
-
-                // Extract menu items
-                const menuCards = data?.data?.cards?.find(card => 
-                    card?.groupedCard?.cardGroupMap?.REGULAR
-                )?.groupedCard?.cardGroupMap?.REGULAR?.cards || [];
-
-                const menuItems = [];
-
-                menuCards.forEach(card => {
-                    try {
-                        if (card?.card?.card?.itemCards) {
-                            const category = card.card.card.title || 'Others';
-                            card.card.card.itemCards.forEach(itemCard => {
-                                const item = itemCard?.card?.info;
-                                if (item && item.name) {
-                                    menuItems.push({
-                                        category: category,
-                                        name: item.name,
-                                        price: item.price ? (item.price / 100).toFixed(2) : 
-                                               item.defaultPrice ? (item.defaultPrice / 100).toFixed(2) : 'N/A',
-                                        description: item.description || '',
-                                        isVeg: item.isVeg === 1
-                                    });
-                                }
-                            });
-                        }
-                        
-                        if (card?.card?.card?.categories) {
-                            const mainCategory = card.card.card.title || 'Others';
-                            card.card.card.categories.forEach(subCategory => {
-                                const category = subCategory.title || mainCategory;
-                                subCategory.itemCards?.forEach(itemCard => {
-                                    const item = itemCard?.card?.info;
-                                    if (item && item.name) {
-                                        menuItems.push({
-                                            category: category,
-                                            name: item.name,
-                                            price: item.price ? (item.price / 100).toFixed(2) : 
-                                                   item.defaultPrice ? (item.defaultPrice / 100).toFixed(2) : 'N/A',
-                                            description: item.description || '',
-                                            isVeg: item.isVeg === 1
-                                        });
-                                    }
-                                });
-                            });
-                        }
-                    } catch (err) {
-                        console.error('Error parsing item:', err);
-                    }
-                });
-
-                if (menuItems.length === 0) {
-                    throw new Error('No menu items found for this restaurant.');
-                }
-
-                menuData = menuItems;
-                restaurantData = {
-                    name: restaurantInfo.name,
-                    cuisine: restaurantInfo.cuisines?.join(', ') || 'N/A',
-                    area: restaurantInfo.areaName || 'N/A',
-                    rating: restaurantInfo.avgRating || 'N/A'
-                };
-
+                menuData = data.menu;
+                restaurantData = data;
                 displayMenu();
                 showResult();
 
             } catch (error) {
-                console.error('Error:', error);
-                showError(error.message || 'Failed to extract menu. Please try again.');
+                showError(error.message);
             } finally {
                 showLoader(false);
             }
         }
 
         function displayMenu() {
-            document.getElementById('restaurantInfo').innerHTML = `
+            document.getElementById('info').innerHTML = `
                 <h2>${restaurantData.name}</h2>
                 <p><strong>Cuisine:</strong> ${restaurantData.cuisine}</p>
                 <p><strong>Area:</strong> ${restaurantData.area}</p>
@@ -341,11 +183,8 @@
             menuData.forEach(item => {
                 html += `
                     <div class="menu-item">
-                        <div>
-                            <span class="item-name">${item.isVeg ? '🟢' : '🔴'} ${item.name}</span>
-                            <div style="color:#666;font-size:0.9em;margin-top:5px">${item.category}</div>
-                        </div>
-                        <span class="item-price">₹${item.price}</span>
+                        <span>${item.isVeg ? '🟢' : '🔴'} ${item.name}</span>
+                        <span>₹${item.price}</span>
                     </div>
                 `;
             });
@@ -355,48 +194,35 @@
         function downloadExcel() {
             const data = menuData.map(item => ({
                 'Category': item.category,
-                'Item Name': item.name,
-                'Type': item.isVeg ? 'Vegetarian' : 'Non-Vegetarian',
-                'Price (₹)': item.price,
-                'Description': item.description || 'N/A'
+                'Item': item.name,
+                'Type': item.isVeg ? 'Veg' : 'Non-Veg',
+                'Price': item.price,
+                'Description': item.description
             }));
 
             const wb = XLSX.utils.book_new();
             const ws = XLSX.utils.json_to_sheet(data);
-            ws['!cols'] = [{ wch: 20 }, { wch: 35 }, { wch: 15 }, { wch: 12 }, { wch: 50 }];
             XLSX.utils.book_append_sheet(wb, ws, 'Menu');
-            
-            const filename = `${restaurantData.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_menu.xlsx`;
-            XLSX.writeFile(wb, filename);
+            XLSX.writeFile(wb, `${restaurantData.name}_menu.xlsx`);
         }
 
         function showLoader(show) {
             document.getElementById('loader').classList.toggle('show', show);
-            document.getElementById('extractBtn').disabled = show;
         }
-
         function showError(msg) {
             const el = document.getElementById('error');
             el.textContent = '❌ ' + msg;
             el.classList.add('show');
         }
-
         function hideError() {
             document.getElementById('error').classList.remove('show');
         }
-
         function showResult() {
             document.getElementById('result').classList.add('show');
         }
-
         function hideResult() {
             document.getElementById('result').classList.remove('show');
         }
-
-        // Allow Enter key
-        document.getElementById('restaurantId').addEventListener('keypress', e => {
-            if (e.key === 'Enter') extractMenu();
-        });
     </script>
 </body>
 </html>
