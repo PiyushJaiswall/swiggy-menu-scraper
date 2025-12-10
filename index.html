@@ -1,27 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Swiggy Menu Downloader</title>
-    <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Swiggy Menu Downloader (Bookmarklet)</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <div class="container">
+    <h1>Swiggy Menu Downloader</h1>
+    <p class="subtitle">
+      This tool gives you a bookmarklet that works directly on Swiggy’s website.
+    </p>
 
-    <div class="container">
-        <h1>Swiggy Menu Downloader</h1>
-        <p>Paste any Swiggy restaurant link below:</p>
+    <ol class="steps">
+      <li>Make sure your browser’s <b>Bookmarks Bar</b> is visible (Ctrl+Shift+B).</li>
+      <li><b>Drag</b> the orange button below to your bookmarks bar.</li>
+      <li>Open any Swiggy restaurant page (with menu visible).</li>
+      <li>Reload the restaurant page once.</li>
+      <li>Click the <b>“Download Swiggy Menu”</b> bookmark.</li>
+    </ol>
 
-        <input type="text" id="urlInput" placeholder="Paste Swiggy restaurant URL here" />
-
-        <button id="openBtn">Open Restaurant Page</button>
-        <button id="extractBtn">Extract Menu</button>
-        <button id="downloadBtn">Download CSV</button>
-
-        <h2>Menu Items</h2>
-        <div id="menuContainer"></div>
+    <div class="bookmarklet-wrapper">
+      <!-- href will be filled by script.js -->
+      <a id="bookmarklet" href="#">Download Swiggy Menu</a>
     </div>
 
-    <script src="script.js"></script>
+    <p class="note">
+      When you click the bookmark on a restaurant page, it will:<br />
+      ✅ Read the existing menu request Swiggy already made<br />
+      ✅ Download a <b>CSV</b> file with all items<br />
+      ✅ Show a small menu overlay on the right side of the page
+    </p>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
